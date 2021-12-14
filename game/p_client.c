@@ -1804,7 +1804,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			edict_t* temp = G_Spawn();
 
 			VectorCopy(trip.endpos, temp->s.origin);
-			T_RadiusDamage(ent, ent, 50000.f, ent, 500.0f, MOD_BOMB);
+			T_RadiusDamage(temp, ent, 50000.f, ent, 500.0f, MOD_BOMB);
 
 			G_FreeEdict(temp);
 
