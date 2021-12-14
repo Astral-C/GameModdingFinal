@@ -51,7 +51,7 @@ pml_t		pml;
 
 // movement parameters
 float	pm_stopspeed = 100;
-float	pm_maxspeed = 300;
+float	pm_maxspeed = 600;
 float	pm_duckspeed = 100;
 float	pm_accelerate = 10;
 float	pm_airaccelerate = 0;
@@ -408,7 +408,7 @@ void PM_Accelerate (vec3_t wishdir, float wishspeed, float accel)
 		accelspeed = addspeed;
 	
 	for (i=0 ; i<3 ; i++)
-		pml.velocity[i] += accelspeed*wishdir[i];	
+		pml.velocity[i] += accelspeed*wishdir[i];
 }
 
 void PM_AirAccelerate (vec3_t wishdir, float wishspeed, float accel)
@@ -553,11 +553,14 @@ void PM_WaterMove (void)
 	VectorCopy (wishvel, wishdir);
 	wishspeed = VectorNormalize(wishdir);
 
+	wishspeed *= pm->speed_mult;
+
 	if (wishspeed > pm_maxspeed)
 	{
 		VectorScale (wishvel, pm_maxspeed/wishspeed, wishvel);
 		wishspeed = pm_maxspeed;
 	}
+
 	wishspeed *= 0.5;
 
 	PM_Accelerate (wishdir, wishspeed, pm_wateraccelerate);
@@ -605,6 +608,8 @@ void PM_AirMove (void)
 // clamp to server defined max speed
 //
 	maxspeed = (pm->s.pm_flags & PMF_DUCKED) ? pm_duckspeed : pm_maxspeed;
+	
+	wishspeed *= pm->speed_mult;
 
 	if (wishspeed > maxspeed)
 	{
@@ -818,8 +823,11 @@ void PM_CheckJump (void)
 
 	pm->groundentity = NULL;
 	pml.velocity[2] += 270;
+	pml.velocity[2] += 50*pm->jump_mult;
 	if (pml.velocity[2] < 270)
 		pml.velocity[2] = 270;
+
+	//pml.velocity[2] += 270 * pml.cl
 }
 
 

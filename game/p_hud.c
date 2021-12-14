@@ -245,7 +245,11 @@ void DeathmatchScoreboardMessage (edict_t *ent, edict_t *killer)
 		strcpy (string + stringlength, entry);
 		stringlength += j;
 	}
+	
+	const char* help = "xv -100 yv 100 string2 \"Find the target pads and step on as many of them as you can while avoiding enemies. Check config to select upgrade keys.\"";
 
+	strcpy(string + stringlength, help);
+	stringlength += strlen(help);
 	gi.WriteByte (svc_layout);
 	gi.WriteString (string);
 }
@@ -321,7 +325,8 @@ void HelpComputer (edict_t *ent)
 		"xv 0 yv 54 cstring2 \"%s\" "		// help 1
 		"xv 0 yv 110 cstring2 \"%s\" "		// help 2
 		"xv 50 yv 164 string2 \" kills     goals    secrets\" "
-		"xv 50 yv 172 string2 \"%3i/%3i     %i/%i       %i/%i\" ", 
+		"xv 50 yv 172 string2 \"%3i/%3i     %i/%i       %i/%i\" "
+		"xv 50 yv 180 string2 \"Find the target pads and step on\nas many of them as you can while\navoiding enemies\"",
 		sk,
 		level.level_name,
 		game.helpmessage1,

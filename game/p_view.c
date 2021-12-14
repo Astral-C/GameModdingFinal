@@ -522,6 +522,16 @@ void P_FallingDamage (edict_t *ent)
 	}
 	delta = delta*delta * 0.0001;
 
+	if (ent->client->in_stomp) {
+		T_RadiusDamage(ent, ent, 50.0f + (ent->client->fall_time * ent->client->dmg_mult), ent, 550.0f, MOD_BOMB);
+
+		gi.WriteByte(svc_temp_entity);
+		gi.WriteByte(TE_GRENADE_EXPLOSION);
+		gi.WritePosition(ent->s.origin);
+		gi.multicast(ent->s.origin, MULTICAST_PHS);
+		ent->client->in_stomp = false;
+	}
+
 	// never take falling damage if completely underwater
 	if (ent->waterlevel == 3)
 		return;
@@ -559,8 +569,8 @@ void P_FallingDamage (edict_t *ent)
 			damage = 1;
 		VectorSet (dir, 0, 0, 1);
 
-		if (!deathmatch->value || !((int)dmflags->value & DF_NO_FALLING) )
-			T_Damage (ent, world, world, dir, ent->s.origin, vec3_origin, damage, 0, 0, MOD_FALLING);
+		//if (!deathmatch->value || !((int)dmflags->value & DF_NO_FALLING) )
+		//	T_Damage (ent, world, world, dir, ent->s.origin, vec3_origin, damage, 0, 0, MOD_FALLING);
 	}
 	else
 	{

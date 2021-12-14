@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define	svc_layout			4
 #define	svc_inventory		5
 #define	svc_stufftext		11
+#define svc_extrahud		21
 
 //==================================================================
 
@@ -181,6 +182,12 @@ typedef enum
 #define PNOISE_WEAPON			1
 #define PNOISE_IMPACT			2
 
+typedef enum {
+	PLAYER_CLASS_NONE,
+	PLAYER_CLASS_FASTYMCSHOOTY,
+	PLAYER_CLASS_MRBOOM,
+	PLAYER_CLASS_JUSTGOD
+} p_class;
 
 // edict->movetype values
 typedef enum
@@ -959,6 +966,32 @@ struct gclient_s
 
 	edict_t		*chase_target;		// player we are chasing
 	qboolean	update_chase;		// need to update chase info?
+
+
+	float jump_mult;
+	float speed_mult;
+	int dmg_mult;
+	float ability_mult;
+
+	int cash;
+
+	qboolean in_stomp;
+	float ability_time;
+	float yeet_start;
+
+	trace_t grapple_target;
+
+	vec3_t tripwire_start;
+	vec3_t tripwire_end;
+	qboolean tripwire_active;
+
+	int enemy_count;
+	int target_active;
+	int enemy_respawn_timer;
+	int targets_smashed;
+	int en_spawn_timer;
+
+	p_class player_class; //good naming conventions are for people with time
 };
 
 

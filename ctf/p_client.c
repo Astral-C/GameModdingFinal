@@ -1241,9 +1241,9 @@ to be placed into the game.  This will happen every level load.
 void ClientBegin (edict_t *ent)
 {
 	int		i;
-
+	
 	ent->client = game.clients + (ent - g_edicts - 1);
-
+	
 	if (deathmatch->value)
 	{
 		ClientBeginDeathmatch (ent);
@@ -1499,6 +1499,17 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 	level.current_entity = ent;
 	client = ent->client;
+
+	// PLAYER CLASS SET UP
+	// only let the player select a class if the player class isnt set.
+	if (client->player_class == PLAYER_CLASS_NONE) {
+		gi.dprintf("Player hasn't selected a class");
+		return;
+	}
+
+	for () {
+
+	}
 
 	if (level.intermissiontime)
 	{

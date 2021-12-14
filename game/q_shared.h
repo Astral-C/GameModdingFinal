@@ -502,6 +502,7 @@ typedef struct
 //
 #define	BUTTON_ATTACK		1
 #define	BUTTON_USE			2
+#define BUTTON_YEET			4
 #define	BUTTON_ANY			128			// any key whatsoever
 
 
@@ -543,6 +544,9 @@ typedef struct
 	// callbacks to test the world
 	trace_t		(*trace) (vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end);
 	int			(*pointcontents) (vec3_t point);
+
+	float jump_mult;
+	float speed_mult;
 } pmove_t;
 
 

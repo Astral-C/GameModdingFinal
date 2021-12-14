@@ -226,7 +226,10 @@ enum svc_ops_e
 	svc_playerinfo,				// variable
 	svc_packetentities,			// [...]
 	svc_deltapacketentities,	// [...]
-	svc_frame
+	svc_frame,
+
+	//game knows about this one lolxd
+	svc_extrahud
 };
 
 //==============================================

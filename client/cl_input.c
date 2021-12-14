@@ -57,7 +57,7 @@ Key_Event (int key, qboolean down, unsigned time);
 kbutton_t	in_klook;
 kbutton_t	in_left, in_right, in_forward, in_back;
 kbutton_t	in_lookup, in_lookdown, in_moveleft, in_moveright;
-kbutton_t	in_strafe, in_speed, in_use, in_attack;
+kbutton_t	in_strafe, in_speed, in_use, in_attack, in_yeet;
 kbutton_t	in_up, in_down;
 
 int			in_impulse;
@@ -170,8 +170,11 @@ void IN_StrafeUp(void) {KeyUp(&in_strafe);}
 void IN_AttackDown(void) {KeyDown(&in_attack);}
 void IN_AttackUp(void) {KeyUp(&in_attack);}
 
-void IN_UseDown (void) {KeyDown(&in_use);}
-void IN_UseUp (void) {KeyUp(&in_use);}
+void IN_UseDown(void) { KeyDown(&in_use); }
+void IN_UseUp(void) { KeyUp(&in_use); }
+
+void IN_YeetDown (void) {KeyDown(&in_yeet);}
+void IN_YeetUp (void) {KeyUp(&in_yeet);}
 
 void IN_Impulse (void) {in_impulse=atoi(Cmd_Argv(1));}
 
@@ -342,9 +345,14 @@ void CL_FinishMove (usercmd_t *cmd)
 	if (in_use.state & 3)
 		cmd->buttons |= BUTTON_USE;
 	in_use.state &= ~2;
+	
+	if (in_yeet.state & 3)
+		cmd->buttons |= BUTTON_YEET;
+	in_yeet.state &= ~2;
 
 	if (anykeydown && cls.key_dest == key_game)
 		cmd->buttons |= BUTTON_ANY;
+
 
 	// send milliseconds of time to apply the move
 	ms = cls.frametime * 1000;
@@ -439,6 +447,9 @@ void CL_InitInput (void)
 	Cmd_AddCommand ("impulse", IN_Impulse);
 	Cmd_AddCommand ("+klook", IN_KLookDown);
 	Cmd_AddCommand ("-klook", IN_KLookUp);
+
+	Cmd_AddCommand("+yeet", IN_YeetDown);
+	Cmd_AddCommand("-yeet", IN_YeetUp);
 
 	cl_nodelta = Cvar_Get ("cl_nodelta", "0", 0);
 }

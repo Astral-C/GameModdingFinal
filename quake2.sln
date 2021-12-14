@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ctf", "ctf\ctf.vcxproj", "{C50658D3-5399-49E0-B84E-296D8E01854F}"
-EndProject
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31624.102
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "game\game.vcxproj", "{99BC3F01-A7EE-4881-939F-8A5EB75E1973}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quake2", "quake2.vcxproj", "{F575AF4A-7BDD-47F6-B65F-F43C514E0069}"
@@ -20,16 +20,6 @@ Global
 		Template|Win32 = Template|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Debug Alpha|Win32.ActiveCfg = Debug Alpha|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Debug Alpha|Win32.Build.0 = Debug Alpha|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Debug|Win32.Build.0 = Debug|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Release Alpha|Win32.ActiveCfg = Release Alpha|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Release Alpha|Win32.Build.0 = Release Alpha|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Release|Win32.ActiveCfg = Release|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Release|Win32.Build.0 = Release|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Template|Win32.ActiveCfg = Release Alpha|Win32
-		{C50658D3-5399-49E0-B84E-296D8E01854F}.Template|Win32.Build.0 = Release Alpha|Win32
 		{99BC3F01-A7EE-4881-939F-8A5EB75E1973}.Debug Alpha|Win32.ActiveCfg = Debug Alpha|Win32
 		{99BC3F01-A7EE-4881-939F-8A5EB75E1973}.Debug Alpha|Win32.Build.0 = Debug Alpha|Win32
 		{99BC3F01-A7EE-4881-939F-8A5EB75E1973}.Debug|Win32.ActiveCfg = Debug|Win32
@@ -73,5 +63,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {85113A2F-621D-4902-9A9C-41CF9A221034}
 	EndGlobalSection
 EndGlobal

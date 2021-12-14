@@ -135,6 +135,7 @@ typedef struct
 	// transient data from server
 	//
 	char		layout[1024];		// general 2D overlay
+	char		extra_hud[1024];
 	int			inventory[MAX_ITEMS];
 
 	//

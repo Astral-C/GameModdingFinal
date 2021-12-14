@@ -946,6 +946,21 @@ void Cmd_Say_f (edict_t *ent, qboolean team, qboolean arg0)
 	}
 }
 
+void Cmd_Set_Class_Shot_f(edict_t* ent) {
+	gi.dprintf("Setting Player Class Shotgun\n");
+	ent->client->player_class = PLAYER_CLASS_FASTYMCSHOTGUN;
+}
+
+void Cmd_Set_Class_Grap_f(edict_t* ent) {
+	gi.dprintf("Setting Player Class Grapple\n");
+	ent->client->player_class = PLAYER_CLASS_MRGRAPPLE;
+}
+
+void Cmd_Set_Class_God_f(edict_t* ent) {
+	gi.dprintf("Setting Player Class God\n");
+	ent->client->player_class = PLAYER_CLASS_JUSTGOD;
+}
+
 /*
 =================
 ClientCommand
@@ -983,6 +998,25 @@ void ClientCommand (edict_t *ent)
 	if (Q_stricmp (cmd, "help") == 0)
 	{
 		Cmd_Help_f (ent);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "set_class_shot") == 0)
+	{
+		gi.cprintf(ent, 1, "shotgun guy selected\n");
+		Cmd_Set_Class_Shot_f (ent);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "set_class_grap") == 0)
+	{
+		Cmd_Set_Class_Grap_f (ent);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "set_class_god") == 0)
+	{
+		Cmd_Set_Class_God_f (ent);
 		return;
 	}
 

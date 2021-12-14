@@ -1378,6 +1378,9 @@ void SCR_UpdateScreen (void)
 				SCR_DrawLayout ();
 			if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 2)
 				CL_DrawInventory ();
+			
+			//always draw special mod hud
+			SCR_ExecuteLayoutString(cl.extra_hud);
 
 			SCR_DrawNet ();
 			SCR_CheckDrawCenterString ();

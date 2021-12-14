@@ -531,21 +531,25 @@ gravity for the level.
 
 void trigger_gravity_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
-	other->gravity = self->gravity;
+	//other->gravity = self->gravity;
+	if (other->client) {
+		gi.dprintf("removing target\n");
+		other->client->target_active = false;
+		other->client->targets_smashed++;
+		G_FreeEdict(self);
+	}
 }
 
 void SP_trigger_gravity (edict_t *self)
 {
-	if (st.gravity == 0)
-	{
-		gi.dprintf("trigger_gravity without gravity set at %s\n", vtos(self->s.origin));
-		G_FreeEdict  (self);
-		return;
-	}
-
-	InitTrigger (self);
-	self->gravity = atoi(st.gravity);
 	self->touch = trigger_gravity_touch;
+	gi.setmodel(self, "models/objects/dmspot/tris.md2");
+	self->s.skinnum = 0;
+	self->solid = SOLID_BBOX;
+	//	ent->s.effects |= EF_FLIES;
+	VectorSet(self->mins, -32, -32, -24);
+	VectorSet(self->maxs, 32, 32, -16);
+	gi.linkentity(self);
 }
 
 

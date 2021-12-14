@@ -563,7 +563,7 @@ void weapon_grenade_fire (edict_t *ent, qboolean held)
 
 	timer = ent->client->grenade_time - level.time;
 	speed = GRENADE_MINSPEED + (GRENADE_TIMER - timer) * ((GRENADE_MAXSPEED - GRENADE_MINSPEED) / GRENADE_TIMER);
-	fire_grenade2 (ent, start, forward, damage, speed, timer, radius, held);
+	fire_grenade2 (ent, start, forward, damage * ent->client->dmg_mult, speed, timer, radius, held);
 
 	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
 		ent->client->pers.inventory[ent->client->ammo_index]--;
@@ -819,6 +819,8 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	vec3_t	start;
 	vec3_t	offset;
 
+	damage *= ent->client->dmg_mult;
+
 	if (is_quad)
 		damage *= 4;
 	AngleVectors (ent->client->v_angle, forward, right, NULL);
@@ -956,7 +958,7 @@ void Machinegun_Fire (edict_t *ent)
 	vec3_t		start;
 	vec3_t		forward, right;
 	vec3_t		angles;
-	int			damage = 8;
+	int			damage = 8 * ent->client->dmg_mult;
 	int			kick = 2;
 	vec3_t		offset;
 
@@ -1186,7 +1188,7 @@ void weapon_shotgun_fire (edict_t *ent)
 	vec3_t		start;
 	vec3_t		forward, right;
 	vec3_t		offset;
-	int			damage = 4;
+	int			damage = 4 * ent->client->dmg_mult;
 	int			kick = 8;
 
 	if (ent->client->ps.gunframe == 9)
@@ -1242,7 +1244,7 @@ void weapon_supershotgun_fire (edict_t *ent)
 	vec3_t		forward, right;
 	vec3_t		offset;
 	vec3_t		v;
-	int			damage = 6;
+	int			damage = 6*ent->client->dmg_mult;
 	int			kick = 12;
 
 	AngleVectors (ent->client->v_angle, forward, right, NULL);
@@ -1309,7 +1311,7 @@ void weapon_railgun_fire (edict_t *ent)
 
 	if (deathmatch->value)
 	{	// normal damage is too extreme in dm
-		damage = 100;
+		damage = 100 * ent->client->dmg_mult;
 		kick = 200;
 	}
 	else
@@ -1372,7 +1374,7 @@ void weapon_bfg_fire (edict_t *ent)
 	float	damage_radius = 1000;
 
 	if (deathmatch->value)
-		damage = 200;
+		damage = 200 * ent->client->dmg_mult;
 	else
 		damage = 500;
 

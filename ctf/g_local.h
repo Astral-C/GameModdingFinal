@@ -580,6 +580,14 @@ extern	qboolean	is_quad;
 //
 #define FFL_SPAWNTEMP		1
 
+
+typedef enum {
+	PLAYER_CLASS_NONE,
+	PLAYER_CLASS_FASTYMCSHOTGUN,
+	PLAYER_CLASS_MRGRAPPLE,
+	PLAYER_CLASS_JUSTGOD
+} p_class;
+
 typedef enum {
 	F_INT, 
 	F_FLOAT,
@@ -986,6 +994,10 @@ struct gclient_s
 	qboolean	update_chase;
 	float		menutime;			// time to update menu
 	qboolean	menudirty;
+
+	edict_t* targets[5];  // targets the player needs to destroy (these will be enemies of a certain type)
+	edict_t* enemies[15]; // all enemies stored by the player class, 15 at a time
+	p_class player_class; // good naming conventions are for people with time
 //ZOID
 };
 

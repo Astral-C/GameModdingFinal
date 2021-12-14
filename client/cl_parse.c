@@ -779,6 +779,11 @@ void CL_ParseServerMessage (void)
 			CL_ParseInventory ();
 			break;
 
+		case svc_extrahud:
+			s = MSG_ReadString(&net_message);
+			strncpy(cl.extra_hud, s, sizeof(cl.extra_hud) - 1);
+			break;
+
 		case svc_layout:
 			s = MSG_ReadString (&net_message);
 			strncpy (cl.layout, s, sizeof(cl.layout)-1);

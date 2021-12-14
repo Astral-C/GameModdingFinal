@@ -196,6 +196,7 @@ void Drop_General (edict_t *ent, gitem_t *item)
 
 qboolean Pickup_Adrenaline (edict_t *ent, edict_t *other)
 {
+	return false;
 	if (!deathmatch->value)
 		other->max_health += 1;
 
@@ -612,6 +613,8 @@ qboolean Pickup_Armor (edict_t *ent, edict_t *other)
 	int				newcount;
 	float			salvage;
 	int				salvagecount;
+
+	return false;
 
 	// get info on new armor
 	newinfo = (gitem_armor_t *)ent->item->info;

@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "g_local.h"
 #include "m_player.h"
 
+void	G_ProjectSource(vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result);
 
 char *ClientTeam (edict_t *ent)
 {
@@ -900,6 +901,213 @@ void Cmd_PlayerList_f(edict_t *ent)
 }
 
 
+void PlayerAbility1(edict_t* ent) {
+	if (ent->client->ability_time > 0.0f) return;
+	switch (ent->client->player_class)
+	{
+	case PLAYER_CLASS_FASTYMCSHOOTY: {
+		if (ent->groundentity == NULL) {
+			ent->client->in_stomp = true;
+			ent->velocity[2] -= 500.0f;
+		}
+		ent->client->ability_time = 50.0f;
+		break;
+	}
+
+	case PLAYER_CLASS_MRBOOM: {
+
+		vec3_t forward, right, up, start;
+		vec3_t dist;
+
+		edict_t* box = G_Spawn();
+
+		AngleVectors(ent->client->v_angle, forward, right, up);
+
+		VectorScale(forward, 50.0f, dist);
+		VectorScale(forward, 2000.0f, box->velocity);
+		VectorAdd(ent->s.origin, dist, box->s.origin);
+
+		SP_misc_explobox(box);
+		ent->client->ability_time = 150.0f;
+		break;
+	}
+
+	case PLAYER_CLASS_JUSTGOD: {
+
+		vec3_t forward, right, up, start;
+		AngleVectors(ent->client->v_angle, forward, right, up);
+		G_ProjectSource(ent->s.origin, vec3_origin, forward, right, start);
+
+		fire_bullet(ent, start, forward, 0.0f, 10000.0, 0.0, 0.0, MOD_BLASTER);
+		ent->client->ability_time = 150.0f;
+		break;
+	}
+
+	default:
+		break;
+	}
+}
+
+void PlayerAbility2(edict_t* ent) {
+	if (ent->client->ability_time > 0.0f) return;
+	switch (ent->client->player_class)
+	{
+	case PLAYER_CLASS_FASTYMCSHOOTY: {
+		vec3_t forward, right, up, start;
+		vec3_t dist, end, tracepoint;
+
+		AngleVectors(ent->client->v_angle, forward, right, up);
+
+		VectorScale(forward, 2000.0f, dist);
+		VectorAdd(ent->s.origin, dist, end);
+
+		//reset the tripwire if its already set when we go to place the start
+		if (!VectorCompare(vec3_origin, ent->client->tripwire_start) && !VectorCompare(vec3_origin, ent->client->tripwire_end)) {
+			VectorCopy(vec3_origin, ent->client->tripwire_start);
+			VectorCopy(vec3_origin, ent->client->tripwire_end);
+			ent->client->tripwire_active = false;
+		}
+
+		trace_t tr;
+		tr = gi.trace(ent->s.origin, NULL, NULL, end, ent, MASK_SHOT);
+
+		if (tr.fraction < 1.0) {
+			if (VectorCompare(vec3_origin, ent->client->tripwire_start)) {
+				VectorCopy(tr.endpos, ent->client->tripwire_start);
+			}
+			else if (VectorCompare(vec3_origin, ent->client->tripwire_end)) {
+				VectorCopy(tr.endpos, ent->client->tripwire_end);
+
+				//make sure the tripwire doesnt go through a wall or under water
+				tr = gi.trace(ent->client->tripwire_start, NULL, NULL, ent->client->tripwire_end, ent, MASK_SHOT);
+				if (tr.fraction >= 1.0) {
+					//need to push the end a little past the wall so the tripwire renders properly without any gaps
+					vec3_t dir;
+					VectorSubtract(tr.endpos, ent->client->tripwire_start, dir);
+					VectorNormalize(dir);
+					VectorScale(dir, 25, dir);
+					VectorAdd(dir, ent->client->tripwire_end, ent->client->tripwire_end);
+
+					ent->client->tripwire_active = true;
+					ent->client->ability_time = 150.0f;
+				}
+			}
+		}
+
+		break;
+	}
+	case PLAYER_CLASS_MRBOOM: {
+		vec3_t forward, right, up, start;
+		vec3_t dist, end, tracepoint;
+
+		AngleVectors(ent->client->v_angle, forward, right, up);
+
+		VectorScale(forward, 290.0f, dist);
+		VectorAdd(ent->s.origin, dist, end);
+
+		VectorScale(forward, 310.0f, tracepoint);
+		VectorAdd(ent->s.origin, tracepoint, tracepoint);
+
+		trace_t tr;
+		tr = gi.trace(ent->s.origin, NULL, NULL, tracepoint, ent, MASK_SHOT);	
+		if (tr.fraction < 1.0) {
+			break;
+		}
+
+		VectorCopy(end, ent->s.origin);
+		ent->client->ability_time = 150.0f;
+		break;
+	}
+
+	case PLAYER_CLASS_JUSTGOD: {
+
+		vec3_t forward, right, up, start;
+		AngleVectors(ent->client->v_angle, forward, right, up);
+		G_ProjectSource(ent->s.origin, vec3_origin, forward, right, start);
+		forward[2] = 0.0f;
+		fire_bullet(ent, start, forward, 0.0f, -10000.0, 0.0, 0.0, MOD_BLASTER);
+		
+
+		
+		ent->client->ability_time = 150.0f;
+		break;
+	}
+
+	default:
+		break;
+	}
+}
+
+void PlayerAbility3(edict_t* ent) {
+	if (ent->client->ability_time > 0.0f) return;
+	switch (ent->client->player_class)
+	{
+	case PLAYER_CLASS_JUSTGOD: {
+
+		vec3_t forward, right, up, dist;
+		AngleVectors(ent->client->v_angle, forward, right, up);
+
+		VectorScale(forward, 900000.0f, dist);
+		VectorAdd(ent->s.origin, dist, dist);
+
+		trace_t tr = gi.trace(ent->s.origin, NULL, NULL, dist, ent, MASK_SHOT);
+
+		gi.WriteByte(svc_temp_entity);
+		gi.WriteByte(TE_PLASMA_EXPLOSION);
+		gi.WritePosition(tr.endpos);
+		gi.multicast(ent->s.origin, MULTICAST_PHS);
+
+		edict_t* enemy = NULL;
+		while ((enemy = findradius(enemy, tr.endpos, 10000)) != NULL) {
+			if (enemy == ent)
+				continue;
+			if (!enemy->takedamage)
+				continue;
+
+			vec3_t dir;
+			dir[0] = (enemy->s.origin[0] - tr.endpos[0]);
+			dir[1] = (enemy->s.origin[1] - tr.endpos[1]);
+			dir[2] = (enemy->s.origin[2] - tr.endpos[2]);
+			VectorNormalize(dir);
+			VectorScale(dir, -1000, enemy->velocity);
+		}
+		break;
+	}
+
+	default:
+		break;
+	}
+	ent->client->ability_time = 150.0f;
+}
+
+void Cmd_Set_Class_Shot_f(edict_t* ent) {
+	gi.dprintf("Setting Player Class Shotgun\n");
+	ent->client->player_class = PLAYER_CLASS_FASTYMCSHOOTY;
+	ent->client->dmg_mult = 1;
+	ent->client->jump_mult  = 2.2f;
+	ent->client->speed_mult = 2.2f;
+}
+
+void Cmd_Set_Class_Boom_f(edict_t* ent) {
+	gi.dprintf("Setting Player Class Boom\n");
+	ent->client->player_class = PLAYER_CLASS_MRBOOM;
+	ent->client->dmg_mult = 1;
+	ent->client->jump_mult  = 1.5f;
+	ent->client->speed_mult = 1.5f;
+}
+
+void Cmd_Set_Class_God_f(edict_t* ent) {
+	gi.dprintf("Setting Player Class God\n");
+	ent->client->player_class = PLAYER_CLASS_JUSTGOD;
+	ent->client->dmg_mult = 1;
+	ent->client->jump_mult  = 0.4f;
+	ent->client->speed_mult = 0.4f;
+}
+
+void Cmd_PrintCoords(edict_t* ent) {
+	gi.dprintf("Pos is %f, %f, %f", ent->s.origin[0], ent->s.origin[1], ent->s.origin[2]);
+}
+
 /*
 =================
 ClientCommand
@@ -937,6 +1145,110 @@ void ClientCommand (edict_t *ent)
 	if (Q_stricmp (cmd, "help") == 0)
 	{
 		Cmd_Help_f (ent);
+		return;
+	}
+	
+	if (ent->client->player_class == PLAYER_CLASS_NONE) {
+		if (Q_stricmp(cmd, "set_class_shot") == 0)
+		{
+			Cmd_Set_Class_Shot_f(ent);
+			return;
+		}
+
+		if (Q_stricmp(cmd, "set_class_boom") == 0)
+		{
+			Cmd_Set_Class_Boom_f(ent);
+			return;
+		}
+
+		if (Q_stricmp(cmd, "set_class_god") == 0)
+		{
+			Cmd_Set_Class_God_f(ent);
+			return;
+		}
+	}
+
+	if (Q_stricmp(cmd, "ability1") == 0)
+	{
+		PlayerAbility1(ent);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "ability2") == 0)
+	{
+		PlayerAbility2(ent);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "ability3") == 0)
+	{
+		PlayerAbility3(ent);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "upg_jump") == 0)
+	{
+		if (ent->client->cash < 150) {
+			gi.centerprintf(ent, "Need $150 to upgrade jump!\n");
+			return;
+		}
+		ent->client->cash -= 150;
+		ent->client->jump_mult += 0.2;
+		gi.centerprintf(ent,  "Upgraded Jump to %fx!\n", ent->client->jump_mult);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "upg_spd") == 0)
+	{
+		if (ent->client->cash < 10) {
+			gi.centerprintf(ent, "Need $10 to upgrade spped!\n");
+			return;
+		}
+		ent->client->cash -= 10;
+		ent->client->speed_mult += 0.2;
+		gi.centerprintf(ent, "Upgraded Speed to %fx!\n", ent->client->speed_mult);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "upg_dmg") == 0)
+	{
+		if (ent->client->cash < 100) {
+			gi.centerprintf(ent, "Need $100 to upgrade damage!\n");
+			return;
+		}
+		ent->client->cash -= 100;
+		ent->client->dmg_mult += 1;
+		gi.centerprintf(ent, "Upgraded Weapon Damage to %dx!\n", ent->client->dmg_mult);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "upg_abl") == 0)
+	{
+		if (ent->client->cash < 100) {
+			gi.centerprintf(ent, "Need $100 to upgrade cooldown speed!\n");
+			return;
+		}
+		ent->client->cash -= 100;
+		ent->client->ability_mult += 0.2;
+		gi.centerprintf(ent, "Upgraded Ability Cooldown to %fx!\n", ent->client->ability_mult);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "upg_mxh") == 0)
+	{
+		if (ent->client->cash < 100) {
+			gi.centerprintf(ent, "Need $100 to upgrade max health!\n");
+				return;
+		}
+		ent->client->cash -= 100;
+		ent->max_health += 10;
+		gi.centerprintf(ent, "Upgraded Max Health to %i!\n", ent->max_health);
+		return;
+	}
+
+	if (Q_stricmp(cmd, "printpos") == 0)
+	{
+		Cmd_PrintCoords(ent);
 		return;
 	}
 

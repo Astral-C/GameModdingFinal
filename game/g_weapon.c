@@ -19,6 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include "g_local.h"
 
+void SP_monster_brain(edict_t* self);
 
 /*
 =================
@@ -326,6 +327,7 @@ void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *
 		else
 			mod = MOD_BLASTER;
 		T_Damage (other, self, self->owner, self->velocity, self->s.origin, plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
+		other->gravity = 0.5;
 	}
 	else
 	{
@@ -448,6 +450,7 @@ static void Grenade_Explode (edict_t *ent)
 	}
 	gi.WritePosition (origin);
 	gi.multicast (ent->s.origin, MULTICAST_PHS);
+
 
 	G_FreeEdict (ent);
 }
@@ -615,6 +618,7 @@ void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *su
 	gi.multicast (ent->s.origin, MULTICAST_PHS);
 
 	G_FreeEdict (ent);
+
 }
 
 void fire_rocket (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, float damage_radius, int radius_damage)

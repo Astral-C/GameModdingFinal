@@ -24,6 +24,17 @@ void ClientUserinfoChanged (edict_t *ent, char *userinfo);
 
 void SP_misc_teleporter_dest (edict_t *ent);
 
+vec3_t target_positions[8] = {
+	{1204, 636, 472},
+	{1763, 1199, 1048}, 
+	{1046, 1284, 920},
+	{-60, 372, 664},
+	{256, -390, 468},
+	{825, -8, 920},
+	{1451, 1108, 920},
+	{1345, 269, 536}
+};
+
 //
 // Gross, ugly, disgustuing hack section
 //
@@ -619,14 +630,30 @@ void InitClientPersistant (gclient_t *client)
 	client->pers.health			= 100;
 	client->pers.max_health		= 100;
 
-	client->pers.max_bullets	= 200;
-	client->pers.max_shells		= 100;
-	client->pers.max_rockets	= 50;
-	client->pers.max_grenades	= 50;
-	client->pers.max_cells		= 200;
-	client->pers.max_slugs		= 50;
+	client->pers.max_bullets	= 2000;
+	client->pers.max_shells		= 1000;
+	client->pers.max_rockets	= 500;
+	client->pers.max_grenades	= 500;
+	client->pers.max_cells		= 2000;
+	client->pers.max_slugs		= 500;
 
 	client->pers.connected = true;
+
+	client->in_stomp = false;
+
+	client->ability_time = 100.0f;
+	
+	client->ability_mult = 1.0f;
+	client->dmg_mult = 1;
+	client->jump_mult = 1.0f;
+	client->speed_mult = 1.0f;
+
+	client->target_active = false;
+	client->targets_smashed = 0;
+	client->cash = 0;
+
+	VectorCopy(vec3_origin, client->tripwire_start);
+	VectorCopy(vec3_origin, client->tripwire_end);
 }
 
 
@@ -1573,9 +1600,47 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	edict_t	*other;
 	int		i, j;
 	pmove_t	pm;
+	char hudstr[1024];
 
 	level.current_entity = ent;
 	client = ent->client;
+
+
+	// PLAYER CLASS SET UP
+	// only let the player select a class if the player class isnt set.
+	if (client->player_class == PLAYER_CLASS_NONE) {
+		//gi.dprintf("Player hasn't selected a class\n");
+		client->ps.pmove.pm_type = PM_FREEZE;
+		gi.centerprintf(ent, "Please Select A Class:\n1 - Fasty Mc Shooty\n2 - Mr Grapple\n3 - Gravity Dude\n");
+
+		return;
+	}
+
+	if (client->ability_time > 0.0f) {
+		client->ability_time -= 1 + (1 * client->ability_mult);
+	}
+	
+	if(client->enemy_count < 8 && client->en_spawn_timer <= 0){
+		edict_t* spawn = SelectRandomDeathmatchSpawnPoint();
+		if(findradius(spawn, spawn->s.origin, 80) == NULL){
+			edict_t* soldier = G_Spawn();
+			VectorCopy(spawn->s.origin, soldier->s.origin);
+			soldier->s.origin[2] += 9;
+			SP_monster_soldier_light(soldier);
+			client->enemy_count++;
+		}
+		client->en_spawn_timer = 600;
+	}
+	client->en_spawn_timer--;
+
+	if(client->target_active == false){
+		edict_t* target = G_Spawn();
+		int t = rand() % 8;
+		VectorCopy(target_positions[t], target->s.origin);
+		gi.dprintf("Spawned Target At %f, %f, %f", target_positions[t][0], target_positions[t][1], target_positions[t][2]);
+		SP_trigger_gravity(target);
+		client->target_active = true;
+	}
 
 	if (level.intermissiontime)
 	{
@@ -1628,6 +1693,9 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 		pm.trace = PM_trace;	// adds default parms
 		pm.pointcontents = gi.pointcontents;
+
+		pm.jump_mult = ent->client->jump_mult;
+		pm.speed_mult = ent->client->speed_mult;
 
 		// perform a pmove
 		gi.Pmove (&pm);
@@ -1702,6 +1770,120 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	// save light level the player is standing on for
 	// monster sighting AI
 	ent->light_level = ucmd->lightlevel;
+
+	//draw special hud
+	
+	Com_sprintf(hudstr, sizeof(hudstr),
+		"xl 0 yb -40 string \"Stats\""
+		"xl 0 yb -32 string \"Cash: %i\""
+		"xl 0 yb -24 string \"Smashed: %i\""
+		"xl 0 yb -16 string \"Ability Cooldown: %.1f\""
+		"xl 0 yb -8 string \"Player Class: %s\"",
+		client->cash,
+		client->targets_smashed,
+		client->ability_time,
+		(client->player_class == PLAYER_CLASS_FASTYMCSHOOTY ? "Fast" : (client->player_class == PLAYER_CLASS_MRBOOM ? "Boom" : "Grav"))
+	);
+
+	gi.WriteByte(svc_extrahud);
+	gi.WriteString(hudstr);
+	gi.unicast(ent, true);
+
+	//tripwire and grappling hook
+
+	vec3_t forward, right, up, start;
+	vec3_t dist;
+	
+	if (client->tripwire_active) {
+		trace_t trip = gi.trace(client->tripwire_start, NULL, NULL, client->tripwire_end, NULL, CONTENTS_MONSTER);
+		if (trip.fraction < 1.0) {
+			client->tripwire_active = false;
+			VectorCopy(vec3_origin, client->tripwire_start);
+			VectorCopy(vec3_origin, client->tripwire_end);
+
+			T_RadiusDamage(ent, ent, 200, ent, 500.0f, MOD_BOMB);
+
+			gi.WriteByte(svc_temp_entity);
+			gi.WriteByte(TE_GRENADE_EXPLOSION);
+			gi.WritePosition(trip.endpos);
+			gi.multicast(ent->s.origin, MULTICAST_PHS);
+		}
+		gi.WriteByte(svc_temp_entity);
+		gi.WriteByte(TE_MEDIC_CABLE_ATTACK);
+		gi.WriteShort(0);
+		gi.WritePosition(client->tripwire_start);
+		gi.WritePosition(client->tripwire_end);
+		gi.multicast(client->tripwire_start, MULTICAST_PVS);
+	}
+
+	switch (client->player_class) {
+	case PLAYER_CLASS_FASTYMCSHOOTY: {
+		if (client->buttons & BUTTON_YEET && !(client->oldbuttons & BUTTON_YEET)) {
+			client->yeet_start = level.time;
+		}
+		else if (client->buttons & BUTTON_YEET) {
+			ent->velocity[0] *= 0.5f;
+			ent->velocity[1] *= 0.5f;
+		}
+		else if (client->oldbuttons & BUTTON_YEET && !(client->buttons & BUTTON_YEET)) {
+
+			AngleVectors(ent->client->v_angle, forward, right, up);
+			VectorScale(forward, fabs((level.time - client->yeet_start) * 1000), ent->velocity);
+		}
+		break;
+	}
+
+	case PLAYER_CLASS_MRBOOM: {
+			if (client->buttons & BUTTON_YEET && !(client->oldbuttons & BUTTON_YEET)) {
+
+				AngleVectors(ent->client->v_angle, forward, right, up);
+
+				VectorScale(forward, 10000.0f, dist);
+				VectorAdd(ent->s.origin, dist, dist);
+
+				client->grapple_target = gi.trace(ent->s.origin, NULL, NULL, dist, ent, MASK_SHOT);
+				if (client->grapple_target.fraction < 1.0) {
+					gi.WriteByte(svc_temp_entity);
+					gi.WriteByte(TE_SPARKS);
+					gi.WritePosition(client->grapple_target.endpos);
+					gi.WriteDir(client->grapple_target.plane.normal);
+					gi.multicast(ent->s.origin, MULTICAST_PVS);
+				}
+			}
+			else if (client->buttons & BUTTON_YEET) {
+				if (!(client->grapple_target.fraction < 1.0) || ((client->grapple_target.surface) && (client->grapple_target.surface->flags & SURF_SKY)))  break;
+				vec3_t dir, dist;
+				//get direction of player to grapple target
+				dir[0] = (client->grapple_target.endpos[0] - ent->s.origin[0]);
+				dir[1] = (client->grapple_target.endpos[1] - ent->s.origin[1]);
+				dir[2] = (client->grapple_target.endpos[2] - ent->s.origin[2]);
+				VectorCopy(dir, dist);
+				if (fabs(dir[0]) < 100 && fabs(dir[1]) < 100 && fabs(dir[2]) < 100) break;
+				VectorNormalize(dir);
+				dir[0] *= 40;
+				dir[1] *= 40;
+				dir[2] *= 40;
+
+				//get over here hhehehehehehehehehehehehe
+				gi.WriteByte(svc_temp_entity);
+				gi.WriteByte(TE_MEDIC_CABLE_ATTACK);
+				gi.WriteShort(ent - g_edicts);
+				gi.WritePosition(ent->s.origin);
+				if (client->grapple_target.contents & CONTENTS_MONSTER) {
+					VectorInverse(dir);
+					VectorAdd(dir, client->grapple_target.ent->velocity, client->grapple_target.ent->velocity);
+					gi.WritePosition(client->grapple_target.ent->s.origin);
+				}
+				else {
+					VectorAdd(dir, ent->velocity, ent->velocity);
+					gi.WritePosition(client->grapple_target.endpos);
+				}
+				gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+			}
+			break;
+		}
+	}
 
 	// fire weapon from final position if needed
 	if (client->latched_buttons & BUTTON_ATTACK)
