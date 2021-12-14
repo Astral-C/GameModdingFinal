@@ -1801,7 +1801,12 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			VectorCopy(vec3_origin, client->tripwire_start);
 			VectorCopy(vec3_origin, client->tripwire_end);
 
-			T_RadiusDamage(ent, ent, 200, ent, 500.0f, MOD_BOMB);
+			edict_t* temp = G_Spawn();
+
+			VectorCopy(trip.endpos, temp->s.origin);
+			T_RadiusDamage(ent, ent, 50000.f, ent, 500.0f, MOD_BOMB);
+
+			G_FreeEdict(temp);
 
 			gi.WriteByte(svc_temp_entity);
 			gi.WriteByte(TE_GRENADE_EXPLOSION);
